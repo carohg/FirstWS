@@ -1,51 +1,30 @@
-import csv
-import mysql.connector
+import psycopg2
 import requests
 from bs4 import BeautifulSoup
-import pandas as pd
 
 url = 'https://www.promociones-att.com.mx/mas/?utm_campaign_dom=0101020304&gad=1&gclid=CjwKCAjwuqiiBhBtEiwATgvixCQJzuAniyG28Bk9yPFy9vj-4-cu_h7pWPXIapTEBYOD9b6Y8oqWLxoChC0QAvD_BwE'
+conn = psycopg2.connect(database = 'vmm_esb', user = 'postgres', password = 'tangananica', host = '172.31.19.104', port = '5432')
+cur = conn.cursor()
+insert_query = "INSERT INTO public.referencia_oferta_comercial(empresa, nombre_producto, vigencia, precio, megas, minutos, mensajes) VALUES (%s, %s, %s, %s, %s, %s, %s)"
 
 response = requests.get(url)
 soup = BeautifulSoup(response.content, 'html.parser')
 promos = soup.find_all('div', class_='swiper-slide')
-total_promos = [
-    #["Compañía", "Nombre", "Vigencia", "Precio", "MB Libres", "Minutos", "SMS"]
-]
 
 
 for promo in promos:
-    insert_promo = ["ATNT"]
+    company = "ATT"
     name = promo.select_one('.title').text.strip()
     price = promo.select_one('.price b').text.strip()
-    free_data = promo.select_one('.promo1 b').text.strip()#promo.find('div', class_='promo1').find('b').text
-    video = promo.select_one('.promo2 b').text.strip()
-    social_media = wa = promo.select_one('.promo3 b').text.strip()
+    free_data = promo.select_one('.promo1 b').text.strip()
+    # video = promo.select_one('.promo2 b').text.strip()
+    # social_media = wa = promo.select_one('.promo3 b').text.strip()
     sms = minute = promo.select_one('.mobileQuantity').text.strip()
     duration = promo.select_one('.promoDuration').text.strip()
+    v = (company, name, duration, price, free_data, minute, sms)
+    cur.execute(insert_query, v)
+    conn.commit()
 
-    insert_promo.append(name)
-    insert_promo.append(duration)
-    insert_promo.append(price)
-    insert_promo.append(free_data)
-    #insert_promo.append(social_media)
-    #insert_promo.append(video)
-    insert_promo.append(minute)
-    insert_promo.append(sms)
-    #insert_promo.append(wa)
-    total_promos.append(insert_promo)
+cur.close()
+conn.close()
 
-#df = pd.DataFrame(total_promos)
-
-
-"""
-sql = "INSERT INTO public.oferta_comercial
-(empresa, nombre_producto, vigencia, precio, megas, minutos, mensajes)
-values(%s, %s, %s, %s, %s, %s, %s); "--query 
-
-values = (,,,)
-mycursor.execute(sql, values)
-
-#commit the changes to the db
-mydb.commit()
-"""
