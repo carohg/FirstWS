@@ -9,10 +9,10 @@ insert_query = "INSERT INTO public.referencia_oferta_comercial(empresa, nombre_p
 
 response = requests.get(url)
 soup = BeautifulSoup(response.content, 'html.parser')
-promos = soup.find_all('div', class_='swiper-slide')
+promoss = soup.find_all('div', class_='swiper-slide')
 
 
-for promo in promos:
+for promo in promoss:
     company = "ATT"
     name = promo.select_one('.title').text.strip()
     price = promo.select_one('.price b').text.strip()
